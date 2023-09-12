@@ -59,6 +59,11 @@ SECTIONS {
         KEEP(*(DeviceData))
     }
 
+    /* Description of the self tests */
+    SelfTestInfo . : {
+        KEEP(*(SelfTestInfo))
+    }
+
     /DISCARD/ : {
         /* Unused exception related info that only wastes space */
         *(.ARM.exidx);

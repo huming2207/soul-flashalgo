@@ -92,7 +92,11 @@ macro_rules! algorithm {
         sectors: [$({
             size: $size:expr,
             address: $address:expr,
-        }),+]
+        }),+],
+        self_tests: [$({
+            test_id: $tid:expr,
+            test_name: $tname:expr,
+        }),+],
     }) => {
         static mut _IS_INIT: bool = false;
         static mut _ALGO_INSTANCE: core::mem::MaybeUninit<$type> = core::mem::MaybeUninit::uninit();
@@ -196,6 +200,27 @@ macro_rules! algorithm {
             ],
         };
 
+        #[allow(non_upper_case_globals)]
+        #[no_mangle]
+        #[used]
+        #[link_section = "SelfTestInfo"]
+        pub static SelfTestInfo: SelfTestDescription = SelfTestDescription {
+            magic: 0x536f_756c, // "Soul"
+            test_items: [
+                $(
+                    SelfTestItem {
+                        id: $tid,
+                        name: $tname,
+                    }
+                ),+,
+                // This marks the end of the flash sector list.
+                SelfTestItem {
+                    id: 0xffff_ffff,
+                    name: [0xff; 32],
+                }
+            ]
+        }
+
         #[repr(C)]
         pub struct FlashDeviceDescription {
             vers: u16,
@@ -211,6 +236,19 @@ macro_rules! algorithm {
 
             flash_sectors: [FlashSector; $crate::count!($($size)*) + 1],
         }
+
+        #[repr(C, packed(1))]
+        pub struct SelfTestItem {
+            id: u32,
+            name: [char; 32],
+        }
+
+        #[repr(C, packed(1))]
+        pub struct SelfTestDescription {
+            magic: u32,
+            test_items: [SelfTestItem; $crate::count!($($tid)* + 1)],
+        }
+
 
         #[repr(C)]
         #[derive(Copy, Clone)]
