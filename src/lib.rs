@@ -27,6 +27,19 @@ pub const FUNCTION_VERIFY: u32 = 3;
 
 pub type ErrorCode = core::num::NonZeroU32;
 
+pub const fn assign_name<const OL: usize>(name: &str) -> [u8; OL] {
+    let name_len = name.len();
+    let arr = name.as_bytes();
+    assert!(name_len <= OL);
+    let mut ans = [0; OL];
+    let mut i = 0;
+    while i < name_len {
+        ans[i] = arr[i];
+        i += 1;
+    }
+    ans
+}
+
 pub trait FlashAlgorithm: Sized + 'static {
     /// Initialize the flash algorithm.
     ///
@@ -204,13 +217,13 @@ macro_rules! algorithm {
         #[no_mangle]
         #[used]
         #[link_section = "SelfTestInfo"]
-        pub static SelfTestInfo: SelfTestDescription = SelfTestDescription {
+        pub static SelfTestMetadata: SelfTestDescription = SelfTestDescription {
             magic: 0x536f_756c, // "Soul"
             test_items: [
                 $(
                     SelfTestItem {
                         id: $tid,
-                        name: $tname,
+                        name: assign_name($tname),
                     }
                 ),+,
                 // This marks the end of the flash sector list.
@@ -219,7 +232,7 @@ macro_rules! algorithm {
                     name: [0xff; 32],
                 }
             ]
-        }
+        };
 
         #[repr(C)]
         pub struct FlashDeviceDescription {
@@ -240,13 +253,13 @@ macro_rules! algorithm {
         #[repr(C, packed(1))]
         pub struct SelfTestItem {
             id: u32,
-            name: [char; 32],
+            name: [u8; 32],
         }
 
         #[repr(C, packed(1))]
         pub struct SelfTestDescription {
             magic: u32,
-            test_items: [SelfTestItem; $crate::count!($($tid)* + 1)],
+            test_items: [SelfTestItem; $crate::count!($($tid)*) + 1],
         }
 
 
