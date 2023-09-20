@@ -220,7 +220,7 @@ macro_rules! algorithm {
         #[link_section = "SelfTestInfo"]
         pub static SelfTestMetadata: SelfTestDescription = SelfTestDescription {
             magic: 0x536f_756c, // "Soul"
-            test_cnt: $crate::count!($($test_id)*),
+            test_cnt: $crate::count!($($test_id)*) as u32,
             ram_start_addr: $ram_start_addr,
             ram_end_addr: $ram_end_addr,
             test_items: [
