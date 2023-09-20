@@ -27,11 +27,11 @@ pub const FUNCTION_VERIFY: u32 = 3;
 
 pub type ErrorCode = core::num::NonZeroU32;
 
-pub const fn assign_name<const OL: usize>(name: &str) -> [u8; OL] {
+pub const fn assign_name<const OPT_LEN: usize>(name: &str) -> [u8; OPT_LEN] {
     let name_len = name.len();
     let arr = name.as_bytes();
-    assert!(name_len <= OL);
-    let mut ans = [0; OL];
+    assert!(name_len <= OPT_LEN);
+    let mut ans = [0; OPT_LEN];
     let mut i = 0;
     while i < name_len {
         ans[i] = arr[i];
@@ -98,17 +98,20 @@ pub enum Function {
 #[macro_export]
 macro_rules! algorithm {
     ($type:ty, {
+        dev_name: $dev_name:expr,
         flash_address: $flash_address:expr,
         flash_size: $flash_size:expr,
         page_size: $page_size:expr,
         empty_value: $empty_value:expr,
+        ram_start_addr: $ram_start_addr:expr,
+        ram_end_addr: $ram_end_addr:expr,
         sectors: [$({
             size: $size:expr,
             address: $address:expr,
         }),+],
         self_tests: [$({
-            test_id: $tid:expr,
-            test_name: $tname:expr,
+            test_id: $test_id:expr,
+            test_name: $test_name:expr,
         }),+],
     }) => {
         static mut _IS_INIT: bool = false;
@@ -181,10 +184,8 @@ macro_rules! algorithm {
         pub static FlashDevice: FlashDeviceDescription = FlashDeviceDescription {
             // The version is never read by probe-rs and can be fixed.
             vers: 0x0,
-            // The device name here can be customized but it really has no real use
-            // appart from identifying the device the ELF is intended for which we have
-            // in our YAML.
-            dev_name: [0u8; 128],
+            // Device (target uC) name, may be reused on some generic flash algo
+            dev_name: assign_name($target_name),
             // The specification does not specify the values that can go here,
             // but this value means internal flash device.
             dev_type: 5,
@@ -219,11 +220,14 @@ macro_rules! algorithm {
         #[link_section = "SelfTestInfo"]
         pub static SelfTestMetadata: SelfTestDescription = SelfTestDescription {
             magic: 0x536f_756c, // "Soul"
+            test_cnt: $crate::count!($($test_id)*),
+            ram_start_addr: $ram_start_addr,
+            ram_end_addr: $ram_end_addr,
             test_items: [
                 $(
                     SelfTestItem {
-                        id: $tid,
-                        name: assign_name($tname),
+                        id: $test_id,
+                        name: assign_name($test_name),
                     }
                 ),+,
                 // This marks the end of the flash sector list.
@@ -246,7 +250,6 @@ macro_rules! algorithm {
             empty: u8,
             program_time_out: u32,
             erase_time_out: u32,
-
             flash_sectors: [FlashSector; $crate::count!($($size)*) + 1],
         }
 
@@ -259,7 +262,10 @@ macro_rules! algorithm {
         #[repr(C, packed(1))]
         pub struct SelfTestDescription {
             magic: u32,
-            test_items: [SelfTestItem; $crate::count!($($tid)*) + 1],
+            ram_start_addr: u32,
+            ram_end_addr: u32,
+            test_cnt: u32,
+            test_items: [SelfTestItem; $crate::count!($($test_id)*) + 1],
         }
 
 
