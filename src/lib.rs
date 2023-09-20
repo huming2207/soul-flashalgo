@@ -98,7 +98,7 @@ pub enum Function {
 #[macro_export]
 macro_rules! algorithm {
     ($type:ty, {
-        dev_name: $dev_name:expr,
+        target_name: $target_name:expr,
         flash_address: $flash_address:expr,
         flash_size: $flash_size:expr,
         page_size: $page_size:expr,
