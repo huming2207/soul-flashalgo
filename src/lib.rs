@@ -27,7 +27,6 @@ pub const FUNCTION_VERIFY: u32 = 3;
 
 pub type ErrorCode = core::num::NonZeroU32;
 
-<<<<<<< HEAD
 #[repr(u8)]
 pub enum SelfTestType {
     InternalSimpleTest = 0,
@@ -35,10 +34,7 @@ pub enum SelfTestType {
     ExternalTest = 2,
 }
 
-pub const fn assign_name<const OL: usize>(name: &str) -> [u8; OL] {
-=======
 pub const fn assign_name<const OPT_LEN: usize>(name: &str) -> [u8; OPT_LEN] {
->>>>>>> 1675c312731fdee838c1efe0cfe6c5ffa62b61b4
     let name_len = name.len();
     let arr = name.as_bytes();
     assert!(name_len <= OPT_LEN);
@@ -121,14 +117,9 @@ macro_rules! algorithm {
             address: $address:expr,
         }),+],
         self_tests: [$({
-<<<<<<< HEAD
             test_type: $ttype:expr,
             test_id: $tid:expr,
             test_name: $tname:expr,
-=======
-            test_id: $test_id:expr,
-            test_name: $test_name:expr,
->>>>>>> 1675c312731fdee838c1efe0cfe6c5ffa62b61b4
         }),+],
     }) => {
         static mut _IS_INIT: bool = false;
@@ -243,14 +234,9 @@ macro_rules! algorithm {
             test_items: [
                 $(
                     SelfTestItem {
-<<<<<<< HEAD
                         typ: $ttype as u8,
                         id: $tid,
                         name: assign_name($tname),
-=======
-                        id: $test_id,
-                        name: assign_name($test_name),
->>>>>>> 1675c312731fdee838c1efe0cfe6c5ffa62b61b4
                     }
                 ),+,
                 // This marks the end of the flash sector list.
