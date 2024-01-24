@@ -27,6 +27,13 @@ pub const FUNCTION_VERIFY: u32 = 3;
 
 pub type ErrorCode = core::num::NonZeroU32;
 
+#[repr(u8)]
+pub enum SelfTestType {
+    InternalSimpleTest = 0,
+    InternalExtendTest = 1,
+    ExternalTest = 2,
+}
+
 pub const fn assign_name<const OL: usize>(name: &str) -> [u8; OL] {
     let name_len = name.len();
     let arr = name.as_bytes();
@@ -107,6 +114,7 @@ macro_rules! algorithm {
             address: $address:expr,
         }),+],
         self_tests: [$({
+            test_type: $ttype:expr,
             test_id: $tid:expr,
             test_name: $tname:expr,
         }),+],
@@ -222,13 +230,14 @@ macro_rules! algorithm {
             test_items: [
                 $(
                     SelfTestItem {
+                        typ: $ttype as u8,
                         id: $tid,
                         name: assign_name($tname),
                     }
                 ),+,
                 // This marks the end of the flash sector list.
                 SelfTestItem {
-                    id: 0xffff_ffff,
+                    id: 0xffff,
                     name: [0xff; 32],
                 }
             ]
@@ -252,7 +261,8 @@ macro_rules! algorithm {
 
         #[repr(C, packed(1))]
         pub struct SelfTestItem {
-            id: u32,
+            typ: u8,
+            id: u16,
             name: [u8; 32],
         }
 
