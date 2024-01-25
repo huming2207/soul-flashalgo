@@ -228,7 +228,7 @@ macro_rules! algorithm {
         #[link_section = "SelfTestInfo"]
         pub static SelfTestMetadata: SelfTestDescription = SelfTestDescription {
             magic: 0x536f_756c, // "Soul"
-            test_cnt: $crate::count!($($test_id)*) as u32,
+            test_cnt: $crate::count!($($tid)*) as u32,
             ram_start_addr: $ram_start_addr,
             ram_end_addr: $ram_end_addr,
             test_items: [
@@ -241,6 +241,7 @@ macro_rules! algorithm {
                 ),+,
                 // This marks the end of the flash sector list.
                 SelfTestItem {
+                    typ: 0xff,
                     id: 0xffff,
                     name: [0xff; 32],
                 }
@@ -275,7 +276,7 @@ macro_rules! algorithm {
             ram_start_addr: u32,
             ram_end_addr: u32,
             test_cnt: u32,
-            test_items: [SelfTestItem; $crate::count!($($test_id)*) + 1],
+            test_items: [SelfTestItem; $crate::count!($($tid)*) + 1],
         }
 
 
