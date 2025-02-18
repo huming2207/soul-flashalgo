@@ -32,6 +32,7 @@ pub enum SelfTestType {
     InternalSimpleTest = 0,
     InternalExtendTest = 1,
     ExternalTest = 2,
+    ReadUID = 3,
 }
 
 pub const fn assign_name<const OPT_LEN: usize>(name: &str) -> [u8; OPT_LEN] {
